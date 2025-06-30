@@ -129,16 +129,16 @@ To group firms with similar sentiment–price dynamics:
 ---
 ## Repository Contents
 
-- `Fetching_Sentiments_10Q-checkpoint.ipynb`  
+- `Fetching_Sentiments_10Q.ipynb`  
   Notebook for downloading 10-Q filings and extracting sentence-level sentiment.
 
 - `Sentiment_Analysis.ipynb`  
   Notebook for analyzing sentiment dynamics and their relationship to stock price behavior.
 - `figures/` folder:
-    - `cluster_figures/`  
+    - `Clusters_figures/`  
        Folder containing visualizations of clustered slope patterns from the sentiment–price dynamics analysis.
 
-    - `optimism_index_plot.png`  
+    - `Optimism_index_in_time.png`  
        Plot showing the evolution of the optimism index over time for each ticker.
 ---
 ## License
