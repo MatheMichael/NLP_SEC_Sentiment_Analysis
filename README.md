@@ -14,7 +14,7 @@ In the second part, we collect historical stock prices for each company around e
 To investigate how sentiment relates to returns, we run a series of linear regressions between the **Optimism Index** and the return effect across shifting time windows. The resulting **regression slopes** measure the sensitivity of price movement to sentiment over time.
   
 By varying these windows, we uncover **structured and recurring patterns** in how sentiment affects returns—some firms show early responses, others delayed or U-shaped effects. To capture these dynamics, we apply **KMeans clustering** to the time series of regression slopes, grouping firms by the shape of their sentiment–return relationship.
-
+![Cluster 2](Figures/Cluster_figs/Cluster_2.jpg)
 ---
 
 ## Part 1: Extracting Sentiment from 10-Q Filings -- Workflow Overview
