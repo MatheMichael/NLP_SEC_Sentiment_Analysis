@@ -15,7 +15,12 @@ To investigate how sentiment relates to returns, we run a series of linear regre
   
 By varying these windows, we uncover **structured and recurring patterns** in how sentiment affects returns—some firms show early responses, others delayed or U-shaped effects. To capture these dynamics, we apply **KMeans clustering** to the time series of regression slopes, grouping firms by the shape of their sentiment–return relationship.
 
-![Cluster 2](Figures/Cluster_figs/Cluster_2.jpg)
+<p float="left">
+  <img src="Figures/Clusters_figs/Cluster_2.jpg" width="200" />
+  <img src="Figures/Clusters_figs/Cluster_3.jpg" width="200" />
+  <img src="Figures/Clusters_figs/Cluster_8.jpg" width="200" />
+</p>
+
 ---
 
 ## Part 1: Extracting Sentiment from 10-Q Filings -- Workflow Overview
