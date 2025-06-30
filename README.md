@@ -1,25 +1,30 @@
 # Sentiment Analysis and Price Dynamics in 10-Q Filings
 
-This project presents an open-source pipeline for extracting sentiment from quarterly 10-Q filings of U.S. publicly traded companies and analyzing how that sentiment relates to short-term stock price behavior. The goal is to understand how qualitative disclosures influence market reactions over time.
+This project presents an open-source pipeline that extracts sentiment from quarterly 10-Q filings of U.S. publicly traded companies and analyzes how that sentiment relates to stock price behavior. 
+  These filings contain forward-looking statements and management commentary that often influence investor expectations. The aim is to better understand how qualitative disclosures affect market reactions over time.
 
-The project consists of two main components:
+The project is divided into two main components:
 1. **Sentence-level sentiment extraction** from the MD&A sections of 10-Q filings using FinBERT.
-2. **Modeling and clustering the dynamics** of how sentiment relates to post-filing stock return patterns.
+2. **Modeling and clustering the dynamics** of the relationship between sentiment and post-filing stock returns.
+
+In the first part, we extract counts of high-confidence **positive** and **negative** sentences from each filing. From these, we compute the **Optimism Index**—defined as the ratio of positive to negative sentences—for each filing.
+
+In the second part, we collect historical stock prices for each company around each filing date. For a given time window, we define the **return effect** as the ratio of the average post-filing price to the average pre-filing price.  
+
+To investigate how sentiment relates to returns, we run a series of linear regressions between the **Optimism Index** and the return effect across shifting time windows. The resulting **regression slopes** measure the sensitivity of price movement to sentiment over time.
+  
+By varying these windows, we uncover **structured and recurring patterns** in how sentiment affects returns—some firms show early responses, others delayed or U-shaped effects. To capture these dynamics, we apply **KMeans clustering** to the time series of regression slopes, grouping firms by the shape of their sentiment–return relationship.
 
 ---
 
-## Part 1: Extracting Sentiment from 10-Q Filings
-
-The first component focuses on extracting and quantifying sentiment from the **Management’s Discussion and Analysis (MD&A)** sections of 10-Q reports submitted to the U.S. Securities and Exchange Commission (SEC). These disclosures are critical sources of forward-looking information and risk commentary, often influencing investor expectations.
-
-### Workflow Overview
-
+## Part 1: Extracting Sentiment from 10-Q Filings -- Workflow Overview
+ 
 **1. Filing Collection**
 - A subset of S&P 500 companies is selected, each with a consistent history of 10-Q filings over the past four years.
 - Filings are retrieved via the [sec-edgar-downloader](https://github.com/jadchaar/sec-edgar-downloader) package.
 
-**2. MD&A Section Parsing**
-- Only filings with a well-defined table of contents are used.
+**2. **Management’s Discussion and Analysis (MD&A)** Section Parsing**
+- Since the 10-Q filings are raw and unstructured, only filings with a well-defined table of contents are used, which helps parsing by locating the MD&A section.
 - The MD&A section is extracted and cleaned by removing tables, bullet points, and formatting artifacts.
 
 **3. Sentence Segmentation**
@@ -28,7 +33,7 @@ The first component focuses on extracting and quantifying sentiment from the **M
 **4. Sentiment Classification with FinBERT**
 - Each sentence is classified using [FinBERT](https://github.com/ProsusAI/finBERT), a transformer model fine-tuned on financial text.
 - Sentences are labeled as **positive**, **negative**, or **neutral**.
-- Only positive and negative counts are stored. Neutral sentences are ignored.
+- Only positive and negative of high score are counted.
 
 ### Output Format
 
@@ -37,9 +42,8 @@ The output of this phase is a Python dictionary where:
 - **Values** are lists of records, each corresponding to a 10-Q filing and containing:
   - Filing date
   - Number of positive and negative sentences
-  - List of cleaned MD&A sentences
 
-These records form the input for the second part of the project, which computes the **Optimism Index** and links sentiment data to price behavior.
+These records form the input for the second part of the project, which computes the **Optimism Index**, the ratio of postive to negative counts, and links sentiment data to price behavior.
 
 ---
 
@@ -58,9 +62,7 @@ result = classifier("Sales decreased in Asia/Pacific mainly due to lower sales v
 
 ---
 
-## Part 2: Sentiment–Price Dynamics Analysis
-
-The second part of the project explores how stock prices respond to the sentiment expressed in 10-Q filings. This is done through a regression-based analysis of post-filing stock price movements in relation to sentiment scores.
+## Part 2: Sentiment–Price Dynamics Analysis -- Workflow Overview
 
 ### Step 1: Price Data Collection
 - For each filing, approximately 85 daily closing prices **before** and **after** the filing date are downloaded using the `yfinance` API.
@@ -69,21 +71,19 @@ The second part of the project explores how stock prices respond to the sentimen
 - An **Optimism Index** is computed for each filing as the ratio of positive to negative sentence counts.
 - A series of **sliding post-filing windows** is defined to compute short-term price changes.
 - In each window, the **return effect** is calculated as the ratio of average post-filing price to pre-filing price.
-- Both the return effect and optimism index are standardized using z-score normalization.
 - Linear regressions are run using `statsmodels`, regressing the normalized optimism index on the normalized return effect.
 - The slope coefficient reflects the **sensitivity of stock price behavior to sentiment** at each window position.
 
 ### Step 3: Time-Series Pattern Analysis
-- Each ticker yields a time series of slope values over sliding windows.
-- These trajectories capture the evolving relationship between filing sentiment and market response.
+
+Each ticker yields a time series of slope values over sliding windows.  These trajectories capture the evolving relationship between filing sentiment and market response. Interestingly, the plots show structure and similarities across stocks, motivating classification.
 
 ---
 
 ## Randomization Check: Validating Patterns
 
 To ensure the observed patterns are not artifacts, a **permutation test** is performed:
-- Sentiment indices are randomly permuted for each ticker.
-- The slope estimation is repeated.
+- Sentiment indices are randomly permuted for each ticker, and the slope estimation is repeated.
 - Resulting patterns appear random, suggesting that the original relationships are statistically meaningful.
 
 ---
@@ -101,7 +101,7 @@ To group firms with similar sentiment–price dynamics:
 
 ## Summary of Findings
 
-- The Optimism Index, derived from sentence-level sentiment, exhibits **meaningful correlations** with short-term return dynamics.
+- The Optimism Index, derived from sentence-level sentiment, exhibits **meaningful correlations** with returns.
 - **Slope trajectory clustering** reveals distinct behavioral patterns in how different firms’ sentiment influences stock price movements.
 - Standardization allows shape-based clustering, though **absolute magnitude and direction** of impact require further modeling.
 
@@ -111,11 +111,23 @@ To group firms with similar sentiment–price dynamics:
 
 - Scale the dataset to include more firms and filing periods.
 - Train a **neural network model** (e.g., 1D CNN or autoencoder) to classify slope shapes.
-- Explore **Dynamic Time Warping** and other similarity metrics.
 - Extend analysis to additional filing types (e.g., 10-K) and other text sections (e.g., Risk Factors).
 
 ---
+## Repository Contents
 
+- `Fetching_Sentiments_10Q-checkpoint.ipynb`  
+  Notebook for downloading 10-Q filings and extracting sentence-level sentiment.
+
+- `Sentiment_Analysis.ipynb`  
+  Notebook for analyzing sentiment dynamics and their relationship to stock price behavior.
+- `figures/` folder:
+    - `cluster_figures/`  
+       Folder containing visualizations of clustered slope patterns from the sentiment–price dynamics analysis.
+
+    - `optimism_index_plot.png`  
+       Plot showing the evolution of the optimism index over time for each ticker.
+---
 ## License
 
 This project is open-source and released under the MIT License.
